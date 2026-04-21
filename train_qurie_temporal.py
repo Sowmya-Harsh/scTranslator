@@ -85,7 +85,7 @@ def pearson_loss(
     return (1.0 - (num / denom)).mean()
 
 
-_mse = nn.MSELoss()   # kept only for ratio loss (4 features, unstable Pearson)
+_mse = nn.MSELoss()   # unused — kept as fallback
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ def evaluate(
 
             l_prot  = pearson_loss(pred, prot)
             l_ptm   = pearson_loss(pred[:, phospho_idx], prot[:, phospho_idx])
-            l_ratio = _mse(ratio_pred, true_ratio)
+            l_ratio = pearson_loss(ratio_pred, true_ratio)
             loss    = l_prot + lambda_ptm * l_ptm + lambda_ratio * l_ratio
 
             total_loss += loss.item()
@@ -275,7 +275,7 @@ def main():
     parser.add_argument("--lambda_ptm",       type=float, default=0.5,
         help="Weight for phospho-only Pearson loss")
     parser.add_argument("--lambda_ratio",     type=float, default=0.3,
-        help="Weight for activation ratio MSE loss")
+        help="Weight for activation ratio Pearson loss")
     parser.add_argument("--temporal_weight",  type=float, default=0.3,
         help="Target fraction of batches drawn from temporal pairs "
              "(rest from same-timepoint). 0.3 = temporal pairs are 30%% "
@@ -311,7 +311,7 @@ def main():
     print(f"  freeze_epochs:       {args.freeze_epochs}")
     print(f"  patience (evals):    {args.patience}")
     print(f"  val_fraction:        {args.val_fraction}")
-    print(f"  Loss: Pearson (prot+ptm)  +  MSE (ratio)")
+    print(f"  Loss: Pearson (prot + ptm + ratio)")
 
     # ── Load data ─────────────────────────────────────────────────────────
     print(f"\n  Loading data...")
@@ -439,7 +439,7 @@ def main():
             # Pearson loss for proteins/PTMs; MSE for ratios (only 4 pairs)
             l_prot  = pearson_loss(pred, prot)
             l_ptm   = pearson_loss(pred[:, phospho_idx], prot[:, phospho_idx])
-            l_ratio = _mse(ratio_pred, true_ratio)
+            l_ratio = pearson_loss(ratio_pred, true_ratio)
             loss    = (l_prot
                        + args.lambda_ptm   * l_ptm
                        + args.lambda_ratio * l_ratio) / args.accum_steps

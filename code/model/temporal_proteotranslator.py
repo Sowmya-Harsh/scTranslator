@@ -112,16 +112,22 @@ class PTMRatioHead(nn.Module):
     Zero-parameter operation. Indices are resolved from ab_names at init
     time so the head is robust to changes in protein list ordering.
 
-    Candidate pairs (QuRIE-seq data):
-        p-Akt / Akt,  p-p38 / p38,  p-S6 / S6,  p-p65 / p65
+    All 11 pairs from QuRIE-seq qurie_phospho_pairs.csv.
     Only pairs whose names appear in ab_names are activated.
     """
 
     _PHOSPHO_PAIR_NAMES: List[Tuple[str, str]] = [
-        ("p-Akt",  "Akt"),
-        ("p-p38",  "p38"),
-        ("p-S6",   "S6"),
-        ("p-p65",  "p65"),
+        ("p-Akt",    "Akt"),
+        ("p-BLNK",   "BLNK"),
+        ("p-Btk",    "Btk"),
+        ("p-CD79a",  "CD79a"),
+        ("p-Erk1/2", "Erk1/2"),
+        ("p-JNK",    "JNK"),
+        ("p-S6",     "S6"),
+        ("p-SHP-1",  "SHP-1"),
+        ("p-Syk",    "Syk"),
+        ("p-p38",    "p38"),
+        ("p-p65",    "p65"),
     ]
 
     def __init__(self, ab_names: List[str], eps: float = 0.1):

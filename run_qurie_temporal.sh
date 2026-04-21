@@ -12,7 +12,7 @@ module --force purge
 module load env/legacy/2020b
 module load lang/Anaconda3/2020.11
 
-cd /home/users/sjanmahanthi/Temporal_PTM_scTranslator/scTranslator
+cd /mnt/aiongpfs/users/sjanmahanthi/Temporal_PTM_scTranslator/scTranslator
 
 mkdir -p logs
 mkdir -p checkpoint/qurie_temporal
@@ -30,7 +30,7 @@ echo "=============================="
 echo ""
 echo "--- Run 1: with delta-t conditioning ---"
 $PYTHON train_qurie_temporal.py \
-    --data_dir /home/users/sjanmahanthi/Data_Test/QuRIE_processed \
+    --data_dir /mnt/aiongpfs/users/sjanmahanthi/Data_Test/QuRIE_processed \
     --pretrain_checkpoint checkpoint/scTranslator_2M.pt \
     --output_dir checkpoint/qurie_temporal \
     --epochs 150 \
@@ -39,8 +39,8 @@ $PYTHON train_qurie_temporal.py \
     --val_fraction 0.1 \
     --lambda_ptm 0.5 \
     --lambda_ratio 0.3 \
-    --freeze_epochs 30 \
-    --patience 10 \
+    --freeze_epochs 150 \
+    --patience 15 \
     --accum_steps 4 \
     --detail_every 25 \
     --max_pairs 5000
@@ -49,7 +49,7 @@ $PYTHON train_qurie_temporal.py \
 echo ""
 echo "--- Run 2: ablation — no delta-t ---"
 $PYTHON train_qurie_temporal.py \
-    --data_dir /home/users/sjanmahanthi/Data_Test/QuRIE_processed \
+    --data_dir /mnt/aiongpfs/users/sjanmahanthi/Data_Test/QuRIE_processed \
     --pretrain_checkpoint checkpoint/scTranslator_2M.pt \
     --output_dir checkpoint/qurie_temporal \
     --epochs 150 \
@@ -58,8 +58,8 @@ $PYTHON train_qurie_temporal.py \
     --val_fraction 0.1 \
     --lambda_ptm 0.5 \
     --lambda_ratio 0.3 \
-    --freeze_epochs 30 \
-    --patience 10 \
+    --freeze_epochs 150 \
+    --patience 15 \
     --accum_steps 4 \
     --detail_every 25 \
     --max_pairs 5000 \
