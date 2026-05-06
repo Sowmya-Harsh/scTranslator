@@ -69,6 +69,8 @@ def main():
     parser.add_argument('--resume', default=False, help='resume training from breakpoint')
     parser.add_argument('--path_checkpoint', default='checkpoint/stage2_single-cell_scTranslator.pt',
                         help='path for loading the resume checkpoint (need specify)')
+    parser.add_argument('--patience', type=int, default=10,
+                        help='early stopping patience on test CCC (default: 10)')
     parser.add_argument('--RNA_path', default='dataset/test/dataset1/GSM5008737_RNA_finetune_withcelltype.h5ad',
                         help='path for loading the rna')
     parser.add_argument('--Pro_path', default='dataset/test/dataset1/GSM5008738_protein_finetune_withcelltype.h5ad',
@@ -145,8 +147,8 @@ def main():
     ##########################
          
     #---  Load Single Cell Data  ---#
-    scRNA_adata = sc.read_h5ad(args.RNA_path)[:100]
-    scP_adata = sc.read_h5ad(args.Pro_path)[:100]
+    scRNA_adata = sc.read_h5ad(args.RNA_path)
+    scP_adata = sc.read_h5ad(args.Pro_path)
     print('Total number of origin RNA genes: ', scRNA_adata.n_vars)
     print('Total number of origin proteins: ', scP_adata.n_vars)
     print('Total number of origin cells: ', scRNA_adata.n_obs)
@@ -190,17 +192,36 @@ def main():
     #---  Training and Testing ---#
     ###############################
     start_time = time.time()
+    best_ccc = -1.0
+    patience_count = 0
+    best_y_hat = None
+    best_y = None
+
     for epoch in range(start_epoch+1, args.epochs + 1):
         train_sampler.set_epoch(epoch)
         test_sampler.set_epoch(epoch)
         torch.cuda.empty_cache()
-        
+
         train_loss, train_ccc = train(args, model, device, train_loader, optimizer, epoch)
         scheduler.step()
-           
-    test_loss, test_ccc, y_hat, y = test(model, device, test_loader)
-    y_pred =  pd.DataFrame(y_hat, columns=test_protein.var.index.tolist())
-    y_truth = pd.DataFrame(y, columns=test_protein.var.index.tolist())
+
+        test_loss, test_ccc, y_hat, y = test(model, device, test_loader)
+        print('Test Set: AVG mse %.4f, AVG ccc %.4f' % (test_loss, test_ccc))
+
+        if test_ccc > best_ccc:
+            best_ccc = test_ccc
+            patience_count = 0
+            best_y_hat = y_hat
+            best_y = y
+        else:
+            patience_count += 1
+            if patience_count >= args.patience:
+                print(f'\nEarly stopping at epoch {epoch} (best test CCC: {best_ccc:.4f})')
+                break
+
+    y_pred  = pd.DataFrame(best_y_hat, columns=test_protein.var.index.tolist())
+    y_truth = pd.DataFrame(best_y,     columns=test_protein.var.index.tolist())
+    test_loss, test_ccc = test_loss, best_ccc
 
     ##############################
     #---  Prepare for Storage ---#
