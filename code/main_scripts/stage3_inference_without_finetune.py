@@ -51,8 +51,8 @@ def main():
     ##########################
          
     #---  Load Single Cell Data  ---#
-    scRNA_adata = sc.read_h5ad(args.RNA_path)[:100]
-    scP_adata = sc.read_h5ad(args.Pro_path)[:100]
+    scRNA_adata = sc.read_h5ad(args.RNA_path)
+    scP_adata = sc.read_h5ad(args.Pro_path)
     print('Total number of origin RNA genes: ', scRNA_adata.n_vars)
     print('Total number of origin proteins: ', scP_adata.n_vars)
     print('Total number of origin cells: ', scRNA_adata.n_obs)
